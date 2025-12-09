@@ -6,7 +6,8 @@
       "type": "serviceBusTrigger",
       "direction": "in",
       "queueName": "transaction-queue",
-      "connection": "QueueConnection"
+      "connection": "SERVICE_BUS_CONN"
     }
   ]
 }
+

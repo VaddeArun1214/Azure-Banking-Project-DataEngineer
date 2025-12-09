@@ -7,11 +7,15 @@
       "direction": "in"
     },
     {
-      "type": "queue",
-      "name": "outputQueueItem",
+      "type": "serviceBus",
+      "name": "outputSbMsg",
       "queueName": "transaction-queue",
-      "connection": "QueueConnection",
+      "entityType": "queue",
+      "connection": "SERVICE_BUS_CONN",
       "direction": "out"
     }
   ]
 }
+
+
+
