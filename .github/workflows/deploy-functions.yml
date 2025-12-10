@@ -1,0 +1,82 @@
+name: Deploy All Azure Functions (Day 4 + Day 5)
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "FraudDetection_EventGridTrigger/**"
+      - "EventGridTrigger/**"
+      - "ServiceBusQueueTrigger/**"
+      - "Dimaccount_TimerTrigger/**"
+      - "Dimcustomer_TimerTrigger/**"
+      - "requirements.txt"
+      - "host.json"
+      - "local.settings.json"
+
+jobs:
+  deploy-functions:
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Azure Functions Core Tools
+        run: npm install -g azure-functions-core-tools@4 --unsafe-perm true
+
+      - name: Install Python Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Deploy FraudDetection_EventGridTrigger (Event Grid Trigger)
+        if: success()
+        run: |
+          cd FraudDetection_EventGridTrigger
+          func azure functionapp publish arun --no-build
+
+      - name: Deploy Dimcustomer_TimerTrigger (Timer)
+        if: success()
+        run: |
+          cd Dimcustomer_TimerTrigger
+          func azure functionapp publish arun --no-build
+
+      - name: Deploy Dimaccount_TimerTrigger (Timer)
+        if: success()
+        run: |
+          cd Dimaccount_TimerTrigger
+          func azure functionapp publish app --no-build
+
+      - name: Deploy ServiceBusQueueTrigger (Service Bus Trigger)
+        if: success()
+        run: |
+          cd ServiceBusQueueTrigger
+          func azure functionapp publish arunservicebus-func --no-build
+
+      - name: Deploy FraudDetection_EventGridTrigger
+        if: success()
+        run: |
+          cd FraudDetection_EventGridTrigger
+          func azure functionapp publish arunfraudalert-func --no-build
+
+      - name: Success Notification
+        if: success()
+        run: |
+          echo "ALL FUNCTIONS DEPLOYED SUCCESSFULLY!"
+          echo "Real-time fraud detection is LIVE"
+
+      - name: Failure Notification
+        if: failure()
+        run: echo "DEPLOYMENT FAILED — CHECK LOGS!"
